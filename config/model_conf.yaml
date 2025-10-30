@@ -1,0 +1,24 @@
+base: &base_config
+  channels: 1
+  img_size: [28, 28]
+  num_classes: 10
+  hidden_size: 200
+
+mlp: 
+  <<: *base_config
+
+resnet18: 
+  <<: *base_config
+
+resnet34: 
+  <<: *base_config
+
+resnet50: 
+  <<: *base_config
+
+resnet101: 
+  <<: *base_config
+
+cnn_text: 
+  <<: *base_config
+
