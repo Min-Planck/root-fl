@@ -1,8 +1,8 @@
 base: &base_config
   channels: 1
-  img_size: [28, 28]
-  num_classes: 10
-  hidden_size: 200
+  img_size: [28, 28]  # Only MLP need this parameter
+  num_classes: 10 
+  hidden_size: 200 # Only MLP need this parameter
 
 mlp: 
   <<: *base_config

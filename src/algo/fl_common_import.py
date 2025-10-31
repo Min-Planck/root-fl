@@ -23,5 +23,4 @@ from flwr.server.strategy.aggregate import aggregate, weighted_loss_avg
 from collections import OrderedDict
 from typing import List, Tuple, Dict, Union, Optional
 from functools import partial, reduce
-from ..utils import train, get_parameters, set_parameters, test
 import torch.nn.functional as F
