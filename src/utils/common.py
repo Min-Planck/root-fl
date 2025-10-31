@@ -122,6 +122,8 @@ def get_configs(cfg, dist, algo_name):
 
     elif algo_name == 'fedimp':
         entropies = [compute_entropy(dist[i]) for i in range(cfg.num_clients)]
+        temperature = cfg.temperature
+        algorithm_config['temperature'] = temperature
         algorithm_config = {**algorithm_config, **{'entropies': entropies}}
 
     elif algo_name == 'fedntd': 
