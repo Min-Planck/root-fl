@@ -1,5 +1,4 @@
 from ..fl_common_import import *
-from src.utils import get_parameters, set_parameters, test
 
 class FedAvg(fl.server.strategy.Strategy): 
 
@@ -119,6 +118,7 @@ class FedAvg(fl.server.strategy.Strategy):
         self, server_round: int, parameters: Parameters
     ) -> Optional[Tuple[float, Dict[str, Scalar]]]:
         """Evaluate global model parameters using an evaluation function."""
+        from src.utils import set_parameters, test
 
         test_net = copy.deepcopy(self.net)  
         set_parameters(test_net, parameters_to_ndarrays(parameters))    
