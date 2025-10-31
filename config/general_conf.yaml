@@ -12,7 +12,7 @@ base: &base_config
   batch_size: 32
   seed_value: 42 
   partition_fraction: [0.3, 0.3, 0.3, 0.1]
-  alpha: [0.01, 0.05, 0.1, 100] 
+  partition_alpha: [0.01, 0.05, 0.1, 100] 
 
 fedavg: 
   <<: *base_config
