@@ -56,7 +56,7 @@ def client_fn(context: Context) -> BaseClient:
     net.to(DEVICE)
     trainloader = trainloaders[int(cid)]  
     num_classes = sum(v is not None and v > 0 for v in dist[cid].values())
-    return BaseClient(cid, ALGO, net, trainloader, num_classes, cfg.local_training_epochs, DEVICE).to_client()
+    return BaseClient(cid, ALGO, net, trainloader, num_classes, general_cfg.local_training_epochs, DEVICE).to_client()
 
 is_moon_type = True if ALGO == 'moon' else False 
 net_ = get_model(
