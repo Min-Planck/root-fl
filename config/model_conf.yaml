@@ -19,6 +19,6 @@ resnet50:
 resnet101: 
   <<: *base_config
 
-cnn_text: 
+cnn_text: # Only use for text classification - agnews
   <<: *base_config
 

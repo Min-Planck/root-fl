@@ -94,7 +94,7 @@ def get_model(model_name,
             num_channels=num_channels,
             im_size=img_size,
             hidden_size=hidden_size,
-            num_classes=num_classes
+            output_size=num_classes
         )
 
     return model
