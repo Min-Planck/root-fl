@@ -5,12 +5,14 @@ import torch
 class MLP_header(nn.Module): 
     def __init__(self, num_channels=1, im_size=(28, 28), hidden_size=200) -> None:
         super(MLP_header, self).__init__()
+        self.num_channels = num_channels
+        self.im_size = im_size
         self.layer1 = nn.Linear(num_channels * im_size[0] * im_size[1], hidden_size)
         self.layer2 = nn.Linear(hidden_size, hidden_size)
         self.relu = nn.ReLU()
 
     def forward(self, x):
-        x = x.view(-1, 28 * 28)
+        x = x.view(-1, self.num_channels * self.im_size[0] * self.im_size[1])
         x = self.layer1(x)
         x = self.relu(x)
 
