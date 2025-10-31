@@ -8,7 +8,7 @@ class MoonTypeModel(nn.Module):
         super().__init__()
         self.use_lstm = False
         if model_name == 'mlp':
-            self.features = MLP_header(im_size=im_size, hidden_size=hidden_size) 
+            self.features = MLP_header(num_channels=num_channels, im_size=im_size, hidden_size=hidden_size) 
             num_ftrs = hidden_size
 
         elif model_name in ['resnet18', 'resnet50', 'resnet34', 'resnet101']:
