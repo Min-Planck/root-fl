@@ -10,9 +10,9 @@ from src.utils import get_train_data, set_seed, get_configs, get_model, get_algo
 from src.client import BaseClient, SimpleClientManager
 
 # ----------- CHANGE HERE -------------
-ALGO = 'fedavg'
-MODEL = 'mlp'
-DATASET = 'fmnist'
+ALGO = 'fedntd'
+MODEL = 'resnet18'
+DATASET = 'cifar10'
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu' 
 client_resources = {"num_cpus": 2, "num_gpus": 0.2} if DEVICE == "cuda" else {"num_cpus": 1, "num_gpus": 0.0}
 # -------------------------------------
@@ -26,7 +26,6 @@ with open("./config/model_conf.yaml") as f:
     m_cfg = EasyDict(yaml.safe_load(f))
 
 m_cfg = m_cfg[MODEL]
-
 set_seed(general_cfg.seed_value)
 ids, dist, trainloaders, testloader, client_dataset_ratio = get_train_data(
     dataset_name=DATASET,

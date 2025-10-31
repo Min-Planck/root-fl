@@ -6,9 +6,9 @@ base: &base_config
   min_evaluate_clients: 2
   min_available_clients: 2
   learning_rate: 0.01
-  num_rounds: 200
-  num_clients: 60
-  local_training_epochs: 5
+  num_rounds: 10
+  num_clients: 40
+  local_training_epochs: 1
   batch_size: 32
   seed_value: 42 
   partition_fraction: [0.3, 0.3, 0.3, 0.1]
@@ -45,4 +45,3 @@ moon:
 
 scaffold:
   <<: *base_config
-  
