@@ -205,7 +205,10 @@ def partition_data(dataset,
                     labels.remove(label)
 
         ids.append(client_indices)
-        counter = Counter(list(map(lambda x: dataset[x][1], ids[i])))
+        if isinstance(dataset, CustomDataset):
+            counter = Counter(list(map(lambda x: int(dataset.targets[x]), ids[i])))
+        else: 
+            counter = Counter(list(map(lambda x: dataset[x][1], ids[i])))
         label_dist.append({classes_name[j]: counter.get(j, 0) for j in range(num_classes)})
 
     return ids, label_dist
