@@ -34,7 +34,7 @@ def fit_handler(algo_name, cid, config, net, trainloader, client_control=None, p
     Returns:
         dict: A dictionary containing the metrics such as loss, accuracy, and necessary metrics for some algorithm.
     """
-    if algo_name in ["fedavg", "feddisco", "fedcls", "fedadp", "fedimp"]:
+    if algo_name in ["fedavg", "fedavgm", "fedadam", "feddisco", "fedcls", "fedadp", "fedimp"]:
         res_metrics = train(net, trainloader, DEVICE=config['device'], learning_rate=config["learning_rate"], epochs=config["epochs"])
     elif algo_name == "fedntd":
         res_metrics = train(net, trainloader, DEVICE=config['device'], learning_rate=config["learning_rate"], epochs=config["epochs"], use_ntd_loss=True, tau=config["tau"], beta=config["beta"])

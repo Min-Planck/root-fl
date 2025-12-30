@@ -17,6 +17,18 @@ base: &base_config
 fedavg: 
   <<: *base_config
 
+fedadam: 
+  <<: *base_config
+  eta: 0.01
+  tau: 0.001
+  beta_1: 0.0
+  beta_2: 0.0
+
+fedavgm: 
+  <<: *base_config
+  server_momentum: 0.0 
+  server_learning_rate: 1.0
+
 fedadp: 
   <<: *base_config
   alpha: 5

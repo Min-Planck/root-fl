@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 from torch.optim import SGD
 
-from src.algo import get_moon_model, MoonTypeModel, FedAdp, FedAvg, FedCLS, FedDisco, FedImp, FedNTD, MOON, Scaffold
+from src.algo import get_moon_model, MoonTypeModel, FedAdam, FedAvgM, FedAdp, FedAvg, FedCLS, FedDisco, FedImp, FedNTD, MOON, Scaffold
 from src.models import ResNet18, ResNet34, ResNet50, ResNet101, CNN_Text, MLP
 
 def get_parameters(net) -> List[np.ndarray]:
@@ -131,7 +131,14 @@ def get_configs(cfg, dist, algo_name):
         algorithm_config['beta'] = cfg.beta
     elif algo_name == 'moon':
         algorithm_config['temperature'] = cfg.temperature
-
+    elif algo_name == 'fedadam': 
+        algorithm_config['eta'] = cfg.eta 
+        algorithm_config['tau'] = cfg.tau 
+        algorithm_config['beta_1'] = cfg.beta_1 
+        algorithm_config['beta_2'] = cfg.beta_2
+    elif algo_name == 'fedavgm':
+        algorithm_config['server_momentum'] = cfg.server_momentum
+        algorithm_config['server_learning_rate'] = cfg.server_learning_rate
     return algorithm_config
 
 def get_algorithm(algo_name): 
@@ -151,5 +158,9 @@ def get_algorithm(algo_name):
         return FedAvg
     elif algo_name == 'scaffold':
         return Scaffold
+    elif algo_name == 'fedavgm':
+        return FedAvgM
+    elif algo_name == 'fedadam':
+        return FedAdam
     else:
         raise ValueError(f"Unknown algorithm: {algo_name}")
