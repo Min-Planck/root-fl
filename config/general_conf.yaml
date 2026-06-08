@@ -11,6 +11,7 @@ base: &base_config
   local_training_epochs: 1
   batch_size: 32
   seed_value: 42 
+  shards: [2, 4, 6, 8]
   partition_fraction: [0.3, 0.3, 0.3, 0.1]
   partition_alpha: [0.01, 0.05, 0.1, 100] 
 

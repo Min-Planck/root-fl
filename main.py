@@ -13,6 +13,7 @@ from src.client import BaseClient, SimpleClientManager
 ALGO = 'fedntd'
 MODEL = 'resnet18'
 DATASET = 'cifar10'
+MODE = 'dirichlet'
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu' 
 client_resources = {"num_cpus": 2, "num_gpus": 0.2} if DEVICE == "cuda" else {"num_cpus": 1, "num_gpus": 0.0}
 # -------------------------------------
@@ -29,10 +30,12 @@ m_cfg = m_cfg[MODEL]
 set_seed(general_cfg.seed_value)
 ids, dist, trainloaders, testloader, client_dataset_ratio = get_train_data(
     dataset_name=DATASET,
+    mode=MODE,
     num_clients=general_cfg.num_clients,
     batch_size=general_cfg.batch_size, 
     fractions=general_cfg.partition_fraction,
-    alphas=general_cfg.partition_alpha
+    alphas=general_cfg.partition_alpha, 
+    # shards=general_cfg.shards,
 )
 
 algorithm_config = get_configs(

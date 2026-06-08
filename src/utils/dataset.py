@@ -11,8 +11,8 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from torch.utils.data import DataLoader, random_split, SubsetRandomSampler
 from datasets import load_dataset 
-import re
-
+import re   
+import numpy as np
 
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, input_data, targets, transform=None):
@@ -84,7 +84,7 @@ def get_transform(dataset_name):
         return None
     
 def load_agnews():
-    dataset = load_dataset("ag_news")
+    dataset = load_dataset("SetFit/ag_news")
 
     train_raw = dataset['train']
     test_raw = dataset['test']
@@ -135,38 +135,47 @@ def load_data(dataset: str):
             testset = dataset_class("data", train=False, download=True, transform=transform)
 
         return trainset, testset
-def partition_data_sharding(dataset, num_clients, num_shards, classes_name):
-    """
-    Dữ liệu được chia ngẫu nhiên theo class, sau đó chia thành shard nhỏ, mỗi client nhận num_shards shard
-    """
+    
+def partition_data_sharding(dataset, num_clients, num_shards_per_client, classes_name):
     num_classes = len(classes_name)
-
-    indices_class = [[] for _ in range(num_classes)]
-    for i, lab in enumerate(dataset.targets):
-        indices_class[lab].append(i)
-
-    all_indices = []
-    for label_indices in indices_class:
-        random.shuffle(label_indices)
-        all_indices.extend(label_indices)
-
-    total_shards = num_shards * num_clients
-    shard_size = len(all_indices) // total_shards
-    shards = [all_indices[i * shard_size:(i + 1) * shard_size] for i in range(total_shards)]
-    random.shuffle(shards)
-
-    ids = [[] for _ in range(num_clients)]
+    
+    total_shards = num_clients * num_shards_per_client
+    
+    indices_class = []
+    for j in range(num_classes):
+        idx = np.array([i for i, lab in enumerate(dataset.targets) if lab == j])
+        np.random.shuffle(idx)
+        indices_class.append(idx)
+        
+    sorted_indices = np.concatenate(indices_class)
+ 
+    shards_list = np.array_split(sorted_indices, total_shards)
+    
+    shards_list_indices = list(range(total_shards))
+    np.random.shuffle(shards_list_indices)
+    
+    ids = []
     label_dist = []
-
+    
     for i in range(num_clients):
-        for j in range(num_shards):
-            idx = i * num_shards + j
-            ids[i].extend(shards[idx])
-        counter = Counter([dataset[x][1] for x in ids[i]])
-        label_dist.append({cls: counter.get(cls, 0) for cls in range(num_classes)})
+        client_indices = []
+        start_idx = i * num_shards_per_client
+        
+        for j in range(num_shards_per_client):
+            shard_idx = shards_list_indices[start_idx + j]
+            client_indices.extend(shards_list[shard_idx].tolist())
+            
+        
+        ids.append(client_indices)
+        
+        if isinstance(dataset, CustomDataset):
+            counter = Counter(list(map(lambda x: int(dataset.targets[x]), ids[i])))
+        else: 
+            counter = Counter(list(map(lambda x: dataset[x][1], ids[i])))
+            
+        label_dist.append({classes_name[j]: counter.get(j, 0) for j in range(num_classes)})
 
     return ids, label_dist
-
 
 def partition_data(dataset,
                    num_clients,
@@ -215,22 +224,18 @@ def partition_data(dataset,
 
 def get_train_data(dataset_name,
                    num_clients,
-                   batch_size, 
+                   batch_size,
                    alphas: list = [0.5, 0.7, 0.9, 1],
                    fractions: list = [0.25, 0.25, 0.25, 0.25],
-                   sharding: bool = False,
+                   mode: str = 'dirichlet',
                    shards: list = None):
 
     assert abs(sum(fractions) - 1.0) < 1e-6, "Tổng 'fractions' phải bằng 1"
-    assert len(alphas) == len(fractions), "'alphas' và 'fractions' phải có cùng độ dài"
-    if sharding:
-        assert shards is not None, "Cần cung cấp 'shards' khi sharding=True"
-        assert len(shards) == len(fractions), "'shards' phải có cùng độ dài với 'fractions'"
+    assert num_clients > 0, "num_clients phải > 0"
 
     trainset, testset = load_data(dataset_name)
     classes = trainset.classes
 
-    # Tính số client/fold
     clients_per_fold = [int(frac * num_clients) for frac in fractions]
     while sum(clients_per_fold) < num_clients:
         for i in range(len(clients_per_fold)):
@@ -238,7 +243,6 @@ def get_train_data(dataset_name,
             if sum(clients_per_fold) == num_clients:
                 break
 
-    # Tính số lượng dữ liệu mỗi fold
     total_data = len(trainset)
     data_per_fold = [int((num / num_clients) * total_data) for num in clients_per_fold]
     while sum(data_per_fold) < total_data:
@@ -248,25 +252,27 @@ def get_train_data(dataset_name,
                 break
 
     partition_fold = random_split(trainset, data_per_fold)
-
     ids, labels_dist = [], []
 
     for i in range(len(fractions)):
         sub_set = partition_fold[i]
+        original_indices = sub_set.indices
 
         if dataset_name in ['cifar10', 'cifar100', 'agnews']:
-            data = [trainset.data[idx] for idx in sub_set.indices]
-            targets = [trainset.targets[idx] for idx in sub_set.indices]
+            data = [trainset.data[idx] for idx in original_indices]
+            targets = [trainset.targets[idx] for idx in original_indices]
         else:
-            data = trainset.data[sub_set.indices]
-            targets = trainset.targets[sub_set.indices].tolist()
+            data = trainset.data[original_indices]
+            targets = trainset.targets[original_indices].tolist()
 
         sub_dataset = CustomDataset(data, targets)
 
-        if sharding and shards[i] > 0:
+        if mode == 'sharding' and shards is not None and shards[i] > 0:
             id, dist = partition_data_sharding(sub_dataset, clients_per_fold[i], shards[i], classes)
-        else:
+        elif mode == "dirichlet":
             id, dist = partition_data(sub_dataset, clients_per_fold[i], alphas[i], classes)
+
+        id = [[original_indices[idx] for idx in client_ids] for client_ids in id]
 
         ids.extend(id)
         labels_dist.extend(dist)
